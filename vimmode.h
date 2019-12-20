@@ -1,8 +1,7 @@
-#include QMK_KEYBOARD_H
-
-#include <stdint.h>
-
 #pragma once
+
+#include QMK_KEYBOARD_H
+#include <stdint.h>
 
 #define SHIFT_HELD (get_mods() & (MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT)))
 #define CTRL_HELD  (get_mods() & (MOD_BIT(KC_LCTRL) | MOD_BIT(KC_RCTRL)))

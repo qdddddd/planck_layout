@@ -608,13 +608,6 @@ bool handle_vim_mode(uint16_t keycode, keyrecord_t* record, uint8_t vim_layer_no
 
     vim_layer = vim_layer_no;
 
-    /*if (keycode == VIM_ESC) {*/
-    /*currmode = COMMAND_MODE;*/
-    /*layer_on(vim_layer);*/
-    /*visual_mode = false;*/
-    /*currcmdsize = 0;*/
-    /*}*/
-
     if (currmode == INSERT_SAVE_MODE) {
         if (currsavesize == SAVEBUFFSIZE || keycode < KC_A || keycode > KC_SLASH) {
             currmode     = INSERT_MODE;
@@ -667,27 +660,39 @@ bool handle_vim_mode(uint16_t keycode, keyrecord_t* record, uint8_t vim_layer_no
     return true;
 }
 
-bool process_normal_key(uint16_t keycode, keyrecord_t* record, uint16_t* buffer, uint8_t buf_pos) {
+bool process_normal_key(uint16_t keycode, keyrecord_t* record, keyrecord_t* buffer, uint8_t buf_pos) {
     return false;
 }
 
-bool process_visual_key(uint16_t keycode, keyrecord_t* record, uint16_t* buffer, uint8_t buf_pos) {
+bool process_visual_key(uint16_t keycode, keyrecord_t* record, keyrecord_t* buffer, uint8_t buf_pos) {
     return false;
 }
 
-bool process_replace_key(uint16_t keycode, keyrecord_t* record, uint16_t* buffer, uint8_t buf_pos) {
+bool process_replace_key(uint16_t keycode, keyrecord_t* record, keyrecord_t* buffer, uint8_t buf_pos) {
     return false;
 }
 
 bool process_vim_key(uint16_t keycode, keyrecord_t* record) {
     static uint8_t mode = COMMAND_MODE;
-    static uint16_t cmd_buffer[16];
-    static uint8_t buf_pos = 0;
+    static keyrecord_t cmd_buffer[16];
+    static uint8_t buf_pos        = 0;
+    static uint8_t mod_state      = 0;
+    static uint16_t last_ctl_time = 0;
 
-    dprintf("\nVim mode = %d ", mode);
-    dprintf("\nVim buffer pos = %d ", buf_pos);
+#define SHIFT_MOD  0b001
+#define CTRL_MOD   0b010
+#define ALT_MOD    0b100
+#define CTRL_INTRR ((record->event.time - last_ctl_time) < 200)
+#define SHIFTED    (mod_state & SHIFT_MOD)
+#define CTRLED     (mod_state & CTRL_MOD)
+#define ALTED      (mod_state & ALT_MOD)
 
-    if (keycode == KC_ESC && !record->event.pressed) {
+    dprintf("\nkeycode = %x, keyevent.pressed = %d, time = %d, SHIFTED = %d, CTRLED = %d ", keycode,
+            record->event.pressed, record->event.time, SHIFTED, CTRLED);
+
+    if (keycode == KC_LCTRL && !record->event.pressed && CTRL_INTRR) {
+        mod_state &= ~CTRL_MOD;
+
     RESET_NORMAL:
         mode    = COMMAND_MODE;
         buf_pos = 0;
@@ -700,7 +705,7 @@ bool process_vim_key(uint16_t keycode, keyrecord_t* record) {
             goto RESET_NORMAL;
         } else {
             if (IS_MOD(keycode)) {
-                cmd_buffer[buf_pos] = keycode;
+                cmd_buffer[buf_pos] = *record;
                 buf_pos++;
             } else {
                 uint32_t saved_layer_state = layer_state;
@@ -711,7 +716,7 @@ bool process_vim_key(uint16_t keycode, keyrecord_t* record) {
                 if (buf_pos) {
                     uint8_t cursor = 0;
                     while (cursor < buf_pos) {
-                        register_code(cmd_buffer[cursor]);
+                        register_code(keymap_key_to_keycode(_BASE, cmd_buffer[cursor].event.key));
                         cursor++;
                     }
                 }
@@ -723,7 +728,7 @@ bool process_vim_key(uint16_t keycode, keyrecord_t* record) {
         }
     }
 
-    if (buf_pos == 0 && record->event.pressed) {
+    if (buf_pos == 0) {
         if (mode == VISUAL_MODE) {
             if (keycode == KC_ESC || keycode == KC_V) {
                 goto RESET_NORMAL;
@@ -733,145 +738,231 @@ bool process_vim_key(uint16_t keycode, keyrecord_t* record) {
         }
 
         switch (keycode) {
+            case KC_LSFT:
+                if (record->event.pressed)
+                    mod_state |= SHIFT_MOD;
+                else
+                    mod_state &= ~SHIFT_MOD;
+                return true;
+
+            case KC_LCTRL:
+                if (record->event.pressed) {
+                    mod_state |= CTRL_MOD;
+                    last_ctl_time = record->event.time;
+                } else
+                    mod_state &= ~CTRL_MOD;
+                return true;
+
+            case KC_LALT:
+                if (record->event.pressed)
+                    mod_state |= ALT_MOD;
+                else
+                    mod_state &= ~ALT_MOD;
+                return true;
+
             case KC_I:
-            RESET_BASE:
-                clear_keyboard();
-                layer_move(_BASE);
-                mode    = COMMAND_MODE;
-                buf_pos = 0;
+                if (record->event.pressed) {
+                RESET_BASE:
+                    clear_keyboard();
+                    layer_move(_BASE);
+                    mode    = COMMAND_MODE;
+                    buf_pos = 0;
+                }
                 return true;
 
             case KC_R:
-                clear_keyboard();
-                mode    = REPLACE_MODE;
-                buf_pos = 0;
+                if (record->event.pressed) {
+                    clear_keyboard();
+                    mode    = REPLACE_MODE;
+                    buf_pos = 0;
+                }
                 return true;
 
             case KC_H:
-                tap_code(KC_LEFT);
-                break;
+                if (record->event.pressed) {
+                    tap_code(KC_LEFT);
+                }
+                return true;
 
             case KC_J:
-                tap_code(KC_DOWN);
-                break;
+                if (record->event.pressed) {
+                    tap_code(KC_DOWN);
+                }
+                return true;
 
             case KC_K:
-                tap_code(KC_UP);
-                break;
+                if (record->event.pressed) {
+                    tap_code(KC_UP);
+                }
+                return true;
 
             case KC_L:
-                tap_code(KC_RIGHT);
-                break;
+                if (record->event.pressed) {
+                    tap_code(KC_RIGHT);
+                }
+                return true;
 
             case KC_W:
-                tap_code16(A(KC_RIGHT));
-                break;
+                if (record->event.pressed) {
+                    tap_code16(A(KC_RIGHT));
+                }
+                return true;
 
             case KC_E:
-                tap_code16(A(KC_RIGHT));
-                break;
+                if (record->event.pressed) {
+                    tap_code16(A(KC_RIGHT));
+                }
+                return true;
 
             case KC_B:
-                tap_code16(A(KC_LEFT));
-                break;
+                if (record->event.pressed) {
+                    tap_code16(A(KC_LEFT));
+                }
+                return true;
 
             case KC_A:
-                tap_code(KC_RIGHT);
-                goto RESET_BASE;
+                if (record->event.pressed) {
+                    tap_code(KC_RIGHT);
+                    goto RESET_BASE;
+                }
+                return true;
 
             case KC_SLSH:
-                tap_code16(G(KC_F));
-                goto RESET_BASE;
+                if (record->event.pressed) {
+                    tap_code16(G(KC_F));
+                    goto RESET_BASE;
+                }
+                return true;
 
             case C(KC_F):
-                tap_code(KC_PGDN);
-                break;
+                if (record->event.pressed) {
+                    tap_code(KC_PGDN);
+                }
+                return true;
 
             case C(KC_B):
-                tap_code(KC_PGUP);
-                break;
+                if (record->event.pressed) {
+                    tap_code(KC_PGUP);
+                }
+                return true;
 
             case KC_Y:
-                tap_code16(G(KC_C));
-                goto RESET_NORMAL;
-                break;
+                if (record->event.pressed) {
+                    tap_code16(G(KC_C));
+                    goto RESET_NORMAL;
+                }
+                return true;
 
             case KC_U:
-                tap_code16(G(KC_Z));
-                break;
+                if (record->event.pressed) {
+                    tap_code16(G(KC_Z));
+                }
+                return true;
 
             case KC_O:
-                tap_code16(G(KC_RIGHT));
-                tap_code(KC_ENT);
-                goto RESET_BASE;
+                if (record->event.pressed) {
+                    tap_code16(G(KC_RIGHT));
+                    tap_code(KC_ENT);
+                    goto RESET_BASE;
+                }
+                return true;
 
             case S(KC_C):
             case S(KC_D):
-                register_code(KC_LGUI);
-                tap_code16(S(KC_RIGHT));
-                unregister_code(KC_LGUI);
-                tap_code(KC_DEL);
-                if (keycode == S(KC_C)) {
-                    goto RESET_BASE;
+                if (record->event.pressed) {
+                    register_code(KC_LGUI);
+                    tap_code16(S(KC_RIGHT));
+                    unregister_code(KC_LGUI);
+                    tap_code(KC_DEL);
+                    if (keycode == S(KC_C)) {
+                        goto RESET_BASE;
+                    }
                 }
-                break;
+                return true;
 
             case S(KC_I):
-                tap_code16(G(KC_LEFT));
-                goto RESET_BASE;
+                if (record->event.pressed) {
+                    tap_code16(G(KC_LEFT));
+                    goto RESET_BASE;
+                }
+                return true;
 
             case S(KC_A):
-                tap_code16(G(KC_RIGHT));
-                goto RESET_BASE;
+                if (record->event.pressed) {
+                    tap_code16(G(KC_RIGHT));
+                    goto RESET_BASE;
+                }
+                return true;
 
             case S(KC_O):
-                tap_code(KC_UP);
-                tap_code16(G(KC_RIGHT));
-                tap_code(KC_ENT);
-                goto RESET_BASE;
+                if (record->event.pressed) {
+                    tap_code(KC_UP);
+                    tap_code16(G(KC_RIGHT));
+                    tap_code(KC_ENT);
+                    goto RESET_BASE;
+                }
+                return true;
 
             case KC_P:
-                tap_code16(G(KC_V));
-                break;
+                if (record->event.pressed) {
+                    tap_code16(G(KC_V));
+                }
+                return true;
 
             case KC_N:
-                tap_code16(G(KC_G));
-                break;
+                if (record->event.pressed) {
+                    tap_code16(G(KC_G));
+                }
+                return true;
 
             case S(KC_N):
-                tap_code16(S(G(KC_G)));
-                break;
+                if (record->event.pressed) {
+                    tap_code16(S(G(KC_G)));
+                }
+                return true;
 
             case KC_V:
-                mode = VISUAL_MODE;
-                tap_code16(S(KC_LEFT));
-                break;
+                if (record->event.pressed) {
+                    mode = VISUAL_MODE;
+                    tap_code16(S(KC_LEFT));
+                }
+                return true;
 
             case KC_X:
-                tap_code(KC_DEL);
-                break;
+                if (record->event.pressed) {
+                    tap_code(KC_DEL);
+                }
+                return true;
 
             case S(KC_X):
-                tap_code(KC_BSPC);
-                break;
+                if (record->event.pressed) {
+                    tap_code(KC_BSPC);
+                }
+                return true;
 
             case KC_0:
             case KC_CIRC:
-                tap_code16(G(KC_LEFT));
-                break;
+                if (record->event.pressed) {
+                    tap_code16(G(KC_LEFT));
+                }
+                return true;
 
             case KC_DLR:
-                tap_code16(G(KC_RIGHT));
-                break;
+                if (record->event.pressed) {
+                    tap_code16(G(KC_RIGHT));
+                }
+                return true;
 
             case S(KC_G):
-                tap_code16(G(KC_DOWN));
-                break;
+                if (record->event.pressed) {
+                    tap_code16(G(KC_DOWN));
+                }
+                return true;
 
             default:
                 if (!IS_MOD(keycode) && keycode != KC_NO && keycode != MO(_LOWER) && keycode != MO(_RAISE)) {
                     dprintf("Keycode added to buffer: %s\n", key2asc(keycode));
-                    cmd_buffer[buf_pos] = keycode;
+                    cmd_buffer[buf_pos] = *record;
                     /*buf_pos++;*/
                 }
                 return true;

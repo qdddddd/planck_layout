@@ -146,16 +146,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      *                 ├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
      *                 │     │     │     │     │     │     │     │     │     │     │     │     │
      *                 ├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
-     *                 │     │     │     │     │     │     │     │     │     │     │     │     │
+     *                 │  ⇧  │     │     │     │     │     │     │     │     │     │     │     │
      *                 ├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
      *                 │     │     │     │     │     │     │     │     │     │     │     │     │
      *                 └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
      */
     [_VIM] = LAYOUT_planck_grid(
-        XXXXXXX, _______, _______, _______, _______, XXXXXXX, _______, _______, _______, _______, _______, XXXXXXX,
-        _______, _______, _______, _______, XXXXXXX, _______, _______, _______, _______, _______, XXXXXXX, XXXXXXX,
-        _______, XXXXXXX, _______, _______, _______, _______, _______, XXXXXXX, XXXXXXX, _______, _______, _______,
-        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______, _______, XXXXXXX, _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
+        XXXXXXX,  _______, _______, _______, _______, XXXXXXX, _______, _______, _______, _______, _______, XXXXXXX,
+        KC_LCTRL, _______, _______, _______, XXXXXXX, _______, _______, _______, _______, _______, XXXXXXX, XXXXXXX,
+        KC_LSFT,  XXXXXXX, _______, _______, _______, _______, _______, XXXXXXX, XXXXXXX, _______, _______, _______,
+        XXXXXXX,  XXXXXXX, XXXXXXX, XXXXXXX, _______, _______, XXXXXXX, _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
     )
 
     // clang-format on
@@ -170,8 +170,6 @@ void keyboard_post_init_user(void) {
 #include <print.h>
 
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
-    dprintf("IS_LAYER_ON = %s ", IS_LAYER_ON(_VIM) ? "true" : "false");
-
     if (IS_LAYER_ON(_VIM) && process_vim_key(keycode, record)) {
         return false;
     }

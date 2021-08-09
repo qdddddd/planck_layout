@@ -1,17 +1,15 @@
+#include QMK_KEYBOARD_H
 #ifdef AUDIO_ENABLE
 #include "muse.h"
 #endif
 #include "eeprom.h"
-#include "ez.h"
 #include "layers.h"
 #include "vimmode.h"
 
 enum planck_keycodes {
-    RGB_SLD = EZ_SAFE_RANGE,
+    RGB_SLD = SAFE_RANGE,
     DYNAMIC_MACRO_RANGE,
 };
-
-#include "dynamic_macro.h"
 
 #define LOWER  MO(_LOWER)
 #define RAISE  MO(_RAISE)
@@ -47,7 +45,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TAB,        KC_Q,     KC_W,   KC_E,    KC_R,  KC_T,   KC_Y,  KC_U,  KC_I,    KC_O,    KC_P,    KC_BSPC,
         CTL_T(KC_ESC), KC_A,     KC_S,   KC_D,    KC_F,  KC_G,   KC_H,  KC_J,  KC_K,    KC_L,    KC_SCLN, KC_QUOTE,
         KC_LSPO,       KC_Z,     KC_X,   KC_C,    KC_V,  KC_B,   KC_N,  KC_M,  KC_COMM, KC_DOT,  KC_SLSH, RSFT_T(KC_ENT),
-        TT(_NUMPAD),   TT(_NAV), KC_CMD, KC_LALT, LOWER, KC_SPC, KC_NO, RAISE, KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT
+        TT(_NUMPAD),   TT(_NAV), KC_CMD, KC_LALT, LOWER, KC_SPC, KC_SPC, RAISE, KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT
     ),
 
     /* Lower layer
@@ -65,7 +63,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_TILD,   KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_DEL,
         TO(_VIM), G(KC_A), G(KC_S), G(KC_D), G(KC_F), _______, _______, KC_MINS, KC_EQL,  KC_LCBR, KC_RCBR, KC_PIPE,
         KC_LSFT,   G(KC_Z), G(KC_X), G(KC_C), G(KC_V), _______, G(KC_N), _______, KC_LABK, KC_RABK, KC_BSLS, _______,
-        _______,   _______, _______, _______, _______, KC_CAPS, KC_NO,   _______, HOME,    BOTTOM,  TOP,     END
+        _______,   _______, _______, _______, _______, KC_CAPS, KC_CAPS,   _______, HOME,    BOTTOM,  TOP,     END
     ),
 
     /* Raise layer
@@ -119,7 +117,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  _______, _______, KC_KP_7, KC_KP_8, KC_KP_9, KC_PMNS, KC_BSPC,
         _______,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   _______, KC_CIRC, KC_KP_4, KC_KP_5, KC_KP_6, KC_PPLS, _______,
         _______,   KC_F1,   KC_F2,   KC_F3,   KC_F4,   _______, KC_PERC, KC_KP_1, KC_KP_2, KC_KP_3, KC_PSLS, KC_PENT,
-        TO(_BASE), _______, _______, _______, _______, _______, KC_NO,   KC_KP_0, KC_KP_0, KC_PDOT, KC_PAST, _______
+        TO(_BASE), _______, _______, _______, _______, _______, _______,   KC_KP_0, KC_KP_0, KC_PDOT, KC_PAST, _______
     ),
 
     /* Navigation layer
@@ -137,7 +135,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______, _______,   _______,    _______, _______, _______, _______, _______, _______, _______,  _______, _______,
         _______, _______,   _______,    _______, _______, _______, KC_LEFT, KC_DOWN, KC_UP,   KC_RIGHT, _______, _______,
         _______, _______,   KC_MS_BTN3, _______, _______, _______, _______, _______, KC_MPRV, KC_MNXT,  _______, _______,
-        _______, TO(_BASE), _______,    _______, KC_VOLD, KC_MPLY, KC_NO,   KC_VOLU, _______, KC_F14,   KC_F15,  _______
+        _______, TO(_BASE), _______,    _______, KC_VOLD, KC_MPLY, KC_MPLY,   KC_VOLU, _______, KC_F14,   KC_F15,  _______
     ),
 
     /* Vim layer as a placeholder
@@ -155,16 +153,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         XXXXXXX,  _______, _______, _______, _______, XXXXXXX, _______, _______, _______, _______, _______, XXXXXXX,
         KC_LCTRL, _______, _______, _______, XXXXXXX, _______, _______, _______, _______, _______, XXXXXXX, XXXXXXX,
         KC_LSFT,  XXXXXXX, _______, _______, _______, _______, _______, XXXXXXX, XXXXXXX, _______, _______, _______,
-        XXXXXXX,  XXXXXXX, XXXXXXX, XXXXXXX, LOWER,   _______, XXXXXXX, RAISE,   XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
+        XXXXXXX,  XXXXXXX, XXXXXXX, XXXXXXX, LOWER,   _______, _______, RAISE,   XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
     )
 
     // clang-format on
 };
 
 void keyboard_post_init_user(void) {
-    keyboard_config.led_level = 1;
-    debug_enable              = true;
-    debug_keyboard            = true;
+    /*keyboard_config.led_level = 1;*/
+    /*debug_enable              = true;*/
+    /*debug_keyboard            = true;*/
 }
 
 #include <print.h>
@@ -174,9 +172,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
         return false;
     }
 
-    if (!process_record_dynamic_macro(keycode, record)) {
-        return false;
-    }
+    /*if (!process_record_dynamic_macro(keycode, record)) {*/
+    /*return false;*/
+    /*}*/
 
     /*switch (keycode) {*/
     /*case:*/
@@ -193,7 +191,7 @@ uint16_t muse_counter  = 0;
 uint8_t muse_offset    = 70;
 uint16_t muse_tempo    = 50;
 
-void encoder_update(bool clockwise) {
+bool encoder_update(bool clockwise) {
     if (muse_mode) {
         if (IS_LAYER_ON(_RAISE)) {
             if (clockwise) {
@@ -227,6 +225,7 @@ void encoder_update(bool clockwise) {
 #endif
         }
     }
+    return true;
 }
 
 void matrix_scan_user(void) {
@@ -257,22 +256,22 @@ bool music_mask_user(uint16_t keycode) {
 #endif
 
 uint32_t layer_state_set_user(uint32_t state) {
-    switch (get_highest_layer(state)) {
-        case _NUMPAD:
-            planck_ez_left_led_on();
-            break;
+    /*switch (get_highest_layer(state)) {*/
+    /*case _NUMPAD:*/
+    /*planck_ez_left_led_on();*/
+    /*break;*/
 
-        case _NAV:
-            planck_ez_right_led_on();
-            break;
+    /*case _NAV:*/
+    /*planck_ez_right_led_on();*/
+    /*break;*/
 
-        case _VIM:
-            planck_ez_left_led_on();
-            planck_ez_right_led_on();
-            break;
-        default:
-            break;
-    }
+    /*case _VIM:*/
+    /*planck_ez_left_led_on();*/
+    /*planck_ez_right_led_on();*/
+    /*break;*/
+    /*default:*/
+    /*break;*/
+    /*}*/
 
     return update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
 }

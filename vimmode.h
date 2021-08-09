@@ -7,6 +7,7 @@
 #define CTRL_HELD  (get_mods() & (MOD_BIT(KC_LCTRL) | MOD_BIT(KC_RCTRL)))
 #define GUI_HELD   (get_mods() & (MOD_BIT(KC_LGUI) | MOD_BIT(KC_RGUI)))
 
+#undef TAPPING_TERM
 #define TAPPING_TERM 250
 
 bool process_vim_key(uint16_t keycode, keyrecord_t* record);

@@ -1,6 +1,7 @@
 #pragma once
 
 #ifdef AUDIO_ENABLE
+#include "song_list.h"
 #define STARTUP_SONG   SONG(WORKMAN_SOUND)
 #define DAC_SAMPLE_MAX 1023U
 

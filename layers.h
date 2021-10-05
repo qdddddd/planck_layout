@@ -7,5 +7,5 @@ enum planck_layers {
     _ADJUST,
     _NUMPAD,
     _NAV,
-    _VIM,
+    //_VIM,
 };

@@ -8,10 +8,7 @@
 
 enum planck_keycodes {
     RGB_SLD = EZ_SAFE_RANGE,
-    DYNAMIC_MACRO_RANGE,
 };
-
-#include "dynamic_macro.h"
 
 #define LOWER  MO(_LOWER)
 #define RAISE  MO(_RAISE)
@@ -98,10 +95,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      *                 └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
      */
     [_ADJUST] = LAYOUT_planck_grid(
-        _______, DYN_STT1, DYN_STT2, _______, RESET,   _______, _______, _______, _______, _______, _______, _______,
-        KC_DEL,  _______,  DYN_STOP, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-        _______, DYN_PLY1, DYN_PLY2, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-        _______, _______,  _______,  _______, _______, SLEEP,   KC_NO,   _______, _______, _______, _______, _______
+        _______, DM_REC1,  DM_REC2, _______, RESET,   _______, _______, _______, _______, _______, _______, _______,
+        KC_DEL,  _______,  DM_RSTP, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+        _______, DM_PLY1,  DM_PLY2, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+        _______, _______,  _______, _______, _______, SLEEP,   KC_NO,   _______, _______, _______, _______, _______
     ),
 
     /* Numpad layer
@@ -162,19 +159,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 void keyboard_post_init_user(void) {
-    keyboard_config.led_level = 1;
     debug_enable              = true;
     debug_keyboard            = true;
+    keyboard_config.led_level = 1;
+    eeconfig_update_kb(keyboard_config.raw);
 }
 
 #include <print.h>
 
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     if (IS_LAYER_ON(_VIM) && process_vim_key(keycode, record)) {
-        return false;
-    }
-
-    if (!process_record_dynamic_macro(keycode, record)) {
         return false;
     }
 
@@ -257,15 +251,23 @@ bool music_mask_user(uint16_t keycode) {
 #endif
 
 uint32_t layer_state_set_user(uint32_t state) {
+    planck_ez_left_led_off();
+    planck_ez_right_led_off();
+
+    state = update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
+
     switch (get_highest_layer(state)) {
         case _NUMPAD:
+        case _LOWER:
             planck_ez_left_led_on();
             break;
 
         case _NAV:
+        case _RAISE:
             planck_ez_right_led_on();
             break;
 
+        case _ADJUST:
         case _VIM:
             planck_ez_left_led_on();
             planck_ez_right_led_on();
@@ -274,5 +276,5 @@ uint32_t layer_state_set_user(uint32_t state) {
             break;
     }
 
-    return update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
+    return state;
 }

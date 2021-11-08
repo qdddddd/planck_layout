@@ -112,14 +112,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      *                 ├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
      *                 │     │ F1  │ F2  │ F3  │ F4  │     │  %  │  1  │  2  │  3  │  /  │Enter│
      *                 ├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
-     *                 │BASE │     │     │     │     │     │     │  0  │  0  │  .  │  *  │     │
+     *                 │BASE │     │     │     │     │NLock│     │  0  │  0  │  .  │  *  │     │
      *                 └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
      */
     [_NUMPAD] = LAYOUT_planck_grid(
         _______,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  _______, _______, KC_KP_7, KC_KP_8, KC_KP_9, KC_PMNS, KC_BSPC,
         _______,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   _______, KC_CIRC, KC_KP_4, KC_KP_5, KC_KP_6, KC_PPLS, _______,
         _______,   KC_F1,   KC_F2,   KC_F3,   KC_F4,   _______, KC_PERC, KC_KP_1, KC_KP_2, KC_KP_3, KC_PSLS, KC_PENT,
-        TO(_BASE), _______, _______, _______, _______, _______, KC_NO,   KC_KP_0, KC_KP_0, KC_PDOT, KC_PAST, _______
+        TO(_BASE), _______, _______, _______, _______, KC_NLCK, KC_NO,   KC_KP_0, KC_KP_0, KC_PDOT, KC_PAST, _______
     ),
 
     /* Navigation layer

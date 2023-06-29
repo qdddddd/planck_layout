@@ -60,7 +60,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      */
     [_LOWER]  = LAYOUT_planck_grid(
         KC_TILD,   KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_DEL,
-        TO(_VIM), G(KC_A), G(KC_S), G(KC_D), G(KC_F), _______, _______, KC_MINS, KC_EQL,  KC_LCBR, KC_RCBR, KC_PIPE,
+        _______, G(KC_A), G(KC_S), G(KC_D), G(KC_F), _______, _______, KC_MINS, KC_EQL,  KC_LCBR, KC_RCBR, KC_PIPE,
         KC_LSFT,   G(KC_Z), G(KC_X), G(KC_C), G(KC_V), _______, G(KC_N), _______, KC_LABK, KC_RABK, KC_BSLS, _______,
         _______,   _______, _______, _______, _______, KC_CAPS, KC_NO,   _______, HOME,    BOTTOM,  TOP,     END
     ),
@@ -168,7 +168,8 @@ void keyboard_post_init_user(void) {
 #include <print.h>
 
 bool process_record_user(uint16_t keycode, keyrecord_t* record) {
-    if (IS_LAYER_ON(_VIM) && process_vim_key(keycode, record)) {
+    /*if (IS_LAYER_ON(_VIM) && process_vim_key(keycode, record)) {*/
+    if (IS_LAYER_ON(_VIM)) {
         return false;
     }
 
@@ -180,75 +181,27 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     return true;
 }
 
-#ifdef AUDIO_ENABLE
-bool muse_mode         = false;
-uint8_t last_muse_note = 0;
-uint16_t muse_counter  = 0;
-uint8_t muse_offset    = 70;
-uint16_t muse_tempo    = 50;
-
 void encoder_update(bool clockwise) {
-    if (muse_mode) {
-        if (IS_LAYER_ON(_RAISE)) {
-            if (clockwise) {
-                muse_offset++;
-            } else {
-                muse_offset--;
-            }
-        } else {
-            if (clockwise) {
-                muse_tempo += 1;
-            } else {
-                muse_tempo -= 1;
-            }
-        }
+    if (clockwise) {
+#ifdef MOUSEKEY_ENABLE
+        register_code(KC_MS_WH_DOWN);
+        unregister_code(KC_MS_WH_DOWN);
+#else
+        register_code(KC_PGDN);
+        unregister_code(KC_PGDN);
+#endif
     } else {
-        if (clockwise) {
 #ifdef MOUSEKEY_ENABLE
-            register_code(KC_MS_WH_DOWN);
-            unregister_code(KC_MS_WH_DOWN);
+        register_code(KC_MS_WH_UP);
+        unregister_code(KC_MS_WH_UP);
 #else
-            register_code(KC_PGDN);
-            unregister_code(KC_PGDN);
+        register_code(KC_PGUP);
+        unregister_code(KC_PGUP);
 #endif
-        } else {
-#ifdef MOUSEKEY_ENABLE
-            register_code(KC_MS_WH_UP);
-            unregister_code(KC_MS_WH_UP);
-#else
-            register_code(KC_PGUP);
-            unregister_code(KC_PGUP);
-#endif
-        }
     }
 }
 
-void matrix_scan_user(void) {
-#ifdef AUDIO_ENABLE
-    if (muse_mode) {
-        if (muse_counter == 0) {
-            uint8_t muse_note = muse_offset + SCALE[muse_clock_pulse()];
-            if (muse_note != last_muse_note) {
-                stop_note(compute_freq_for_midi_note(last_muse_note));
-                play_note(compute_freq_for_midi_note(muse_note), 0xF);
-                last_muse_note = muse_note;
-            }
-        }
-        muse_counter = (muse_counter + 1) % muse_tempo;
-    }
-#endif
-}
-
-bool music_mask_user(uint16_t keycode) {
-    switch (keycode) {
-        case RAISE:
-        case LOWER:
-            return false;
-        default:
-            return true;
-    }
-}
-#endif
+/*void matrix_scan_user(void) {}*/
 
 uint32_t layer_state_set_user(uint32_t state) {
     planck_ez_left_led_off();

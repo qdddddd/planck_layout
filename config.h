@@ -3,9 +3,7 @@
 #ifdef AUDIO_ENABLE
 #define STARTUP_SONG         SONG(WORKMAN_SOUND)
 #define AUDIO_DAC_SAMPLE_MAX 1023U
-
 #define MIDI_BASIC
-
 #define ENCODER_RESOLUTION 4
 #endif
 
